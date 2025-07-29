@@ -81,16 +81,27 @@ export const Header = () => {
             {/* === Center Section: Search (Desktop Only) === */}
             <div className="hidden md:flex justify-center flex-1 mx-auto px-4 ml-[200px]">
               <div className="w-full max-w-xl">
-                <div className="flex">
+                <div className="flex relative w-full">
                   <input
                     type="text"
                     placeholder="Search videos..."
-                    className="rounded-l-full border border-gray-300 border-r-0 px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
+                    className="rounded-l-full border border-gray-300 border-r-0 px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all pr-10"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     autoFocus
                   />
-                  <SearchResults query={query} onClose={() => setQuery("")} />
+
+                  {/* X icon shown only if input has value */}
+                  {query.trim() !== "" && (
+                    <button
+                      className="absolute right-[70px] top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-black"
+                      onClick={() => setQuery("")}
+                      aria-label="Clear search"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  )}
+
                   <button
                     className="rounded-r-full border border-gray-300 px-6 py-2 bg-gray-50 hover:bg-gray-100 transition-colors border-l-0"
                     aria-label="Search"
@@ -98,6 +109,9 @@ export const Header = () => {
                     <Search className="h-4 w-4" />
                   </button>
                 </div>
+
+                {/* Optional: Search Results component */}
+                <SearchResults query={query} onClose={() => setQuery("")} />
               </div>
             </div>
 

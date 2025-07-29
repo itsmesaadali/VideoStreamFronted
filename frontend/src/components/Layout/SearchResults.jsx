@@ -51,7 +51,7 @@ export const SearchResults = ({ query, onClose }) => {
   if (!query || filtered.length === 0) return null;
 
   return (
-    <div className="absolute z-50 mt-12 w-full max-w-xl bg-white border border-gray-300 rounded-lg shadow-lg ">
+    <div className="absolute z-50 mt-3 w-full max-w-xl bg-white border border-gray-300 rounded-lg shadow-lg ">
       <ul className="max-h-60 overflow-auto">
         {filtered.map((item, index) => (
           <li
