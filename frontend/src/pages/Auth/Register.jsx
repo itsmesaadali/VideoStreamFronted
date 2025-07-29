@@ -79,14 +79,14 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20 flex items-center justify-center p-4">
       {/* Logo in corner */}
-  <div className="absolute top-6 left-6 hidden md:block">
-  <Link href="/" className="inline-flex items-center gap-2">
-    <div className="h-10 w-10 bg-red-600 rounded-full flex items-center justify-center">
-      <Play className="h-6 w-6 text-white fill-white" />
-    </div>
-    <span className="text-2xl font-bold">VidStream</span>
-  </Link>
-</div>
+      <div className="absolute top-6 left-6 hidden md:block">
+        <Link to="/" className="inline-flex items-center gap-2">
+          <div className="h-10 w-10 bg-red-600 rounded-full flex items-center justify-center">
+            <Play className="h-6 w-6 text-white fill-white" />
+          </div>
+          <span className="text-2xl font-bold">VidStream</span>
+        </Link>
+      </div>
 
       <div className="w-full max-w-2xl">
         {/* Header */}
@@ -130,6 +130,32 @@ export default function RegisterPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6 p-8">
+                {/* Google Sign-In */}
+                <div className="space-y-4">
+                  <Button
+                    variant="outline"
+                    className="w-full h-12 rounded-2xl flex items-center justify-center gap-3 text-base font-medium"
+                    // onClick={() => {
+                    //   // TODO: Replace with real Google OAuth logic
+                    //   console.log("Google Sign-In Clicked");
+                    // }}
+                  >
+                    <img
+                      src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                      alt="Google"
+                      className="h-5 w-5"
+                    />
+                    Continue with Google
+                  </Button>
+
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className="flex-grow h-px bg-muted-foreground/30" />
+                    or continue with email
+                    <div className="flex-grow h-px bg-muted-foreground/30" />
+                  </div>
+                </div>
+
+                {/* Account Information Form Fields */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label

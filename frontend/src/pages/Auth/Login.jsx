@@ -16,7 +16,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950/20 dark:to-orange-950/20 flex items-center justify-center p-4">
       {/* Logo in corner */}
       <div className="absolute top-6 left-6 hidden md:block">
-        <Link href="/" className="inline-flex items-center gap-2">
+        <Link to="/" className="inline-flex items-center gap-2">
           <div className="h-10 w-10 bg-red-600 rounded-full flex items-center justify-center">
             <Play className="h-6 w-6 text-white fill-white" />
           </div>

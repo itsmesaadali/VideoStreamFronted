@@ -88,7 +88,6 @@ export const Header = () => {
                     className="rounded-l-full border border-gray-300 border-r-0 px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all pr-10"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    autoFocus
                   />
 
                   {/* X icon shown only if input has value */}
