@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
-import { registerUser } from '../../store/features/authSlice';
+import { registerUser, clearAuthError } from '../../store/features/authSlice';
 import { Button } from "../../components/UI/Button";
 import { Input } from "../../components/UI/Input";
 import { Label } from "../../components/UI/Label";
@@ -17,7 +17,12 @@ export default function RegisterPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading, error, isAuthenticated } = useSelector((state) => state.user);
+  const { loading, error, isAuthenticated } = useSelector((state) => state.auth);
+
+    // Clear any existing errors when component mounts
+  useEffect(() => {
+    dispatch(clearAuthError());
+  }, [dispatch]);
 
   const {
     register,

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
-import { loginUser, selectIsAuthenticated, selectAuthLoading, selectAuthError } from "../../store/features/authSlice";
+import { loginUser, clearAuthError } from "../../store/features/authSlice";
 import { Play, User, Lock, Mail } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/UI/Card";
 import { Button } from "../../components/UI/Button";
@@ -12,9 +12,9 @@ import { Link, useNavigate } from "react-router-dom";
 export default function LoginPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const isAuthenticated = useSelector(selectIsAuthenticated);
-  const loading = useSelector(selectAuthLoading);
-  const error = useSelector(selectAuthError);
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+  const loading = useSelector((state) => state.auth.loading);
+  const error = useSelector((state) => state.auth.error);
 
   const {
     register,
@@ -22,6 +22,7 @@ export default function LoginPage() {
     watch,
     formState: { errors },
     setError,
+    clearErrors
   } = useForm({
     defaultValues: {
       login: '',
@@ -29,10 +30,16 @@ export default function LoginPage() {
     }
   });
 
-  // Handle authentication state changes
+  // Clear errors and reset auth state when component mounts
+  useEffect(() => {
+    dispatch(clearAuthError());
+    clearErrors();
+  }, [dispatch, clearErrors]);
+
+  // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/');
+      navigate('/profile');
     }
   }, [isAuthenticated, navigate]);
 

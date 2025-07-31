@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, Search, Bell, User, ArrowLeft, X, Play, LogOutIcon } from "lucide-react";
+import { Menu, Search, Bell, User, ArrowLeft, X, Play, LogOut } from "lucide-react";
 import { SearchResults } from "./SearchResults";
 import { useDispatch, useSelector } from "react-redux";
-import {  logoutUser, selectIsAuthenticated } from '../../store/features/authSlice'
+import { logoutUser, selectIsAuthenticated, selectCurrentUser } from '../../store/features/authSlice';
+import { Avatar, AvatarFallback, AvatarImage } from "../UI/Avatar";
 
 export const Header = () => {
   const [isMobSearch, setIsMobSearch] = useState(false);
@@ -11,6 +12,7 @@ export const Header = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const isAuthenticated = useSelector(selectIsAuthenticated);
+  const currentUser = useSelector(selectCurrentUser);
 
   const handleMobSearch = () => {
     setIsMobSearch(!isMobSearch);
@@ -18,15 +20,12 @@ export const Header = () => {
 
   const handleLogout = async () => {
     try {
-        // Attempt proper logout
-        await dispatch(logoutUser()).unwrap();
+      await dispatch(logoutUser()).unwrap();
+      navigate("/");
     } catch (error) {
-        console.error("Logout error:", error);
-    } finally {
-        // Always clear local state and redirect
-        navigate("/login");
+      console.error("Logout error:", error);
     }
-};
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
@@ -57,7 +56,6 @@ export const Header = () => {
                   setIsMobSearch(false);
                 }}
               />
-
               <button
                 className="rounded-r-full border border-gray-300 px-4 py-2 bg-gray-50 hover:bg-gray-100 transition-colors"
                 aria-label="Search"
@@ -106,8 +104,6 @@ export const Header = () => {
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                   />
-
-                  {/* X icon shown only if input has value */}
                   {query.trim() !== "" && (
                     <button
                       className="absolute right-[70px] top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-black"
@@ -117,7 +113,6 @@ export const Header = () => {
                       <X className="h-5 w-5" />
                     </button>
                   )}
-
                   <button
                     className="rounded-r-full border border-gray-300 px-6 py-2 bg-gray-50 hover:bg-gray-100 transition-colors border-l-0"
                     aria-label="Search"
@@ -125,8 +120,6 @@ export const Header = () => {
                     <Search className="h-4 w-4" />
                   </button>
                 </div>
-
-                {/* Optional: Search Results component */}
                 <SearchResults query={query} onClose={() => setQuery("")} />
               </div>
             </div>
@@ -151,36 +144,34 @@ export const Header = () => {
                 <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
               </button>
 
-              {/* User */}
+              {/* User Avatar/Profile */}
               {isAuthenticated ? (
-                <Link to="/profile">
+                <div className="flex items-center gap-2">
+                  <Link to="/profile">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={currentUser?.avatar} />
+                      <AvatarFallback>
+                        {currentUser?.username?.charAt(0).toUpperCase() || <User className="h-4 w-4" />}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Link>
                   <button
+                    onClick={handleLogout}
                     className="rounded-full p-2 hover:bg-gray-100 transition-colors"
-                    aria-label="User profile"
+                    aria-label="Logout"
                   >
-                    <User className="h-5 w-5" />
+                    <LogOut className="h-5 w-5" />
                   </button>
-                </Link>
+                </div>
               ) : (
                 <Link to="/login">
                   <button
                     className="rounded-full p-2 hover:bg-gray-100 transition-colors"
-                    aria-label="User profile"
+                    aria-label="Login"
                   >
                     <User className="h-5 w-5" />
                   </button>
                 </Link>
-              )}
-
-              {/* Logout - only show if authenticated */}
-              {isAuthenticated && (
-                <button
-                  onClick={handleLogout}
-                  className="rounded-full p-2 hover:bg-gray-100 transition-colors"
-                  aria-label="Logout"
-                >
-                  <LogOutIcon className="h-5 w-5" />
-                </button>
               )}
             </div>
           </>

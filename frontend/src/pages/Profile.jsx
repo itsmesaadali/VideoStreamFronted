@@ -1,71 +1,57 @@
-import { useSelector } from "react-redux";
-import { selectCurrentUser } from "../store/features/authSlice";
-import {Link} from "react-router-dom";
+import { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { Link } from "react-router-dom";
+import { selectCurrentUser, selectIsAuthenticated, getCurrentUser } from "../store/features/authSlice";
 import { Button } from "../components/UI/Button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "../components/UI/Card";
-import { Avatar, AvatarFallback, AvatarImage } from "../components/UI/Avatar";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "../components/UI/Tabs";
-import {
-  Users,
-  Calendar,
-  MapPin,
-  LinkIcon,
-  Settings,
-  Upload,
-  ThumbsUp,
-  MessageCircle,
-  Share2,
-} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/UI/Card";
+import { Avatar, AvatarImage } from "../components/UI/Avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/UI/Tabs";
+import { Users, Calendar, MapPin, LinkIcon, Settings, Upload, ThumbsUp, MessageCircle, Share2 } from "lucide-react";
 
 export default function ProfilePage() {
+  const dispatch = useDispatch();
   const currentUser = useSelector(selectCurrentUser);
-  
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+
+  // Fetch user data when component mounts or auth state changes
+  useEffect(() => {
+    if (isAuthenticated) {
+      dispatch(getCurrentUser());
+    }
+  }, [dispatch, isAuthenticated]);
+
   // Optional videos data - fallback to empty array if not available
-  const userVideos = currentUser?.videos || [
-    {
-      id: 1,
-      title: "My First Video Upload",
-      views: "1.2K views",
-      time: "2 days ago",
-      thumbnail: "/placeholder.svg?height=180&width=320",
-      duration: "5:23",
-    },
-    {
-      id: 2,
-      title: "Tutorial: Getting Started",
-      views: "856 views",
-      time: "1 week ago",
-      thumbnail: "/placeholder.svg?height=180&width=320",
-      duration: "12:45",
-    },
-    {
-      id: 3,
-      title: "Behind the Scenes",
-      views: "2.1K views",
-      time: "2 weeks ago",
-      thumbnail: "/placeholder.svg?height=180&width=320",
-      duration: "8:17",
-    },
-  ];
+  const userVideos = currentUser?.videos || [];
 
   // Format join date if available
   const joinDate = currentUser?.createdAt 
     ? new Date(currentUser.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
     : 'Unknown';
 
+  if (!isAuthenticated) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-4">
+        <Card className="w-full max-w-md text-center p-8">
+          <h2 className="text-2xl font-bold mb-4">Profile Not Available</h2>
+          <p className="text-muted-foreground mb-6">
+            You need to be logged in to view this profile
+          </p>
+          <div className="flex gap-4 justify-center">
+            <Button asChild variant="outline">
+              <Link to="/login">Sign In</Link>
+            </Button>
+            <Button asChild>
+              <Link to="/register">Create Account</Link>
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-background flex flex-col min-h-screen items-center overflow-hidden">
-      {/* Cover Image - Now using the actual coverImage from user data */}
+      {/* Cover Image */}
       <div 
         className="relative h-48 md:h-64 w-full bg-cover bg-center"
         style={{
@@ -82,7 +68,6 @@ export default function ProfilePage() {
         <div className="relative -mt-16 md:-mt-20">
           <div className="flex flex-col md:flex-row items-start md:items-end gap-6 mb-8">
             <Avatar className="h-32 w-32 border-4 border-background">
-              {/* Using avatar instead of profilePicture to match your database field */}
               <AvatarImage src={currentUser?.avatar} />
             </Avatar>
 
@@ -90,7 +75,7 @@ export default function ProfilePage() {
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <h1 className="text-3xl font-bold mb-2">
-                    {currentUser?.displayName || currentUser?.username || 'User'}
+                    {currentUser?.fullname || currentUser?.username || 'User'}
                   </h1>
                   <div className="flex items-center gap-4 text-muted-foreground mb-2">
                     <span>@{currentUser?.username || 'username'}</span>

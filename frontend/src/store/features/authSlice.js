@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { axiosInstance } from '../../utils/axiosConfig';
 
 
 // Async Thunks
@@ -51,7 +52,7 @@ export const getCurrentUser = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.get('/users/current-user');
-      return response.data;
+      return response.data.data; // Access the data property
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch user');
     }
@@ -71,6 +72,9 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
+     clearAuthError: (state) => {
+      state.error = null;
+    },
     updateTokens: (state, action) => {
       state.accessToken = action.payload.accessToken;
       state.refreshToken = action.payload.refreshToken;
@@ -140,9 +144,9 @@ const authSlice = createSlice({
         state.loading = true;
       })
       .addCase(getCurrentUser.fulfilled, (state, action) => {
-        state.loading = false;
-        state.user = action.payload;
-        state.isAuthenticated = true;
+        state.user = action.payload; // Should be the user object
+      state.isAuthenticated = true;
+      state.loading = false;
       })
       .addCase(getCurrentUser.rejected, (state, action) => {
         state.loading = false;
@@ -151,7 +155,7 @@ const authSlice = createSlice({
   }
 });
 
-export const { updateTokens, logout } = authSlice.actions;
+export const { updateTokens, logout, clearAuthError } = authSlice.actions;
 
 // Selectors
 export const selectCurrentUser = (state) => state.auth.user;
