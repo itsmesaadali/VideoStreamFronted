@@ -1,17 +1,78 @@
-import { Play, User, Lock } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "../../components/UI/Card";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { useDispatch, useSelector } from "react-redux";
+import { loginUser, selectIsAuthenticated, selectAuthLoading, selectAuthError } from "../../store/features/atuhSlice";
+import { Play, User, Lock, Mail } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/UI/Card";
 import { Button } from "../../components/UI/Button";
 import { Input } from "../../components/UI/Input";
 import { Label } from "../../components/UI/Label";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function LoginPage() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+  const loading = useSelector(selectAuthLoading);
+  const error = useSelector(selectAuthError);
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+    setError,
+  } = useForm({
+    defaultValues: {
+      login: '',
+      password: ''
+    }
+  });
+
+  // Handle authentication state changes
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
+
+  // Handle server errors
+  useEffect(() => {
+    if (error) {
+      setError('root', {
+        type: 'server',
+        message: error
+      });
+    }
+  }, [error, setError]);
+
+  const onSubmit = async (data) => {
+    try {
+      await dispatch(loginUser(data));
+    } catch (error) {
+      console.error('Login error', error);
+    }
+  };
+
+  const validateEmailOrUsername = (value) => {
+    if (!value) return 'Email or username is required';
+    
+    if (value.includes('@')) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(value)) {
+        return 'Please enter a valid email address';
+      }
+    } else {
+      if (value.length < 3) {
+        return 'Username must be at least 3 characters';
+      }
+    }
+    return true;
+  };
+
+  const currentLogin = watch('login');
+  const isEmail = currentLogin?.includes('@');
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950/20 dark:to-orange-950/20 flex items-center justify-center p-4">
       {/* Logo in corner */}
@@ -42,47 +103,81 @@ export default function LoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6 p-8">
-            <div className="space-y-2">
-              <Label
-                htmlFor="username"
-                className="flex items-center gap-2 text-sm font-medium"
+            <form onSubmit={handleSubmit(onSubmit)}>
+              {/* Login field */}
+              <div className="space-y-2 mb-4">
+                <Label htmlFor="login" className="flex items-center gap-2 text-sm font-medium">
+                  {isEmail ? <Mail className="h-4 w-4" /> : <User className="h-4 w-4" />}
+                  {isEmail ? 'Email' : 'Username'}
+                </Label>
+                <Input
+                  id="login"
+                  type="text"
+                  placeholder={isEmail ? 'Enter your email' : 'Enter your username'}
+                  className="rounded-2xl h-12 px-4"
+                  {...register("login", {
+                    required: "Email or username is required",
+                    validate: validateEmailOrUsername
+                  })}
+                />
+                {errors.login && (
+                  <p className="text-red-500 text-sm mt-1">{errors.login.message}</p>
+                )}
+              </div>
+
+              {/* Password field */}
+              <div className="space-y-2 mb-4">
+                <Label htmlFor="password" className="flex items-center gap-2 text-sm font-medium">
+                  <Lock className="h-4 w-4" />
+                  Password
+                </Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Enter your password"
+                  className="rounded-2xl h-12 px-4"
+                  {...register("password", {
+                    required: "Password is required",
+                    minLength: {
+                      value: 6,
+                      message: "Password must be at least 6 characters"
+                    }
+                  })}
+                />
+                {errors.password && (
+                  <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
+                )}
+              </div>
+
+              {/* Error message and submit button */}
+              {errors.root && (
+                <div className="text-red-500 text-sm mb-4 text-center">
+                  {errors.root.message}
+                </div>
+              )}
+
+              <div className="text-right mb-4">
+                <Link to="/forgot-password" className="text-sm text-red-600 hover:underline">
+                  Forgot password?
+                </Link>
+              </div>
+
+              <Button 
+                type="submit"
+                className="w-full bg-red-600 hover:bg-red-700 rounded-2xl h-12 text-base font-medium"
+                disabled={loading}
               >
-                <User className="h-4 w-4" />
-                Username
-              </Label>
-              <Input
-                id="username"
-                type="text"
-                placeholder="Enter your username"
-                className="rounded-2xl h-12 px-4"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label
-                htmlFor="password"
-                className="flex items-center gap-2 text-sm font-medium"
-              >
-                <Lock className="h-4 w-4" />
-                Password
-              </Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                className="rounded-2xl h-12 px-4"
-              />
-            </div>
-
-            <div className="text-right">
-              <a href="#" className="text-sm text-red-600 hover:underline">
-                Forgot password?
-              </a>
-            </div>
-
-            <Button className="w-full bg-red-600 hover:bg-red-700 rounded-2xl h-12 text-base font-medium">
-              Sign In
-            </Button>
+                {loading ? (
+                  <span className="flex items-center justify-center">
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Signing in...
+                  </span>
+                ) : "Sign In"}
+              </Button>
+            </form>
 
             <div className="text-center text-sm">
               {"Don't have an account? "}

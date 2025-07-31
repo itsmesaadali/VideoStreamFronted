@@ -1,5 +1,5 @@
 import { useSelector } from "react-redux";
-import { selectCurrentUser } from "../store/features/";
+import { selectCurrentUser } from "../store/features/atuhSlice";
 import {Link} from "react-router-dom";
 import { Button } from "../components/UI/Button";
 import {
@@ -64,9 +64,16 @@ export default function ProfilePage() {
     : 'Unknown';
 
   return (
-    <div className="bg-background flex flex-col min-h-screen items-center">
-      {/* Cover Image */}
-      <div className="relative h-48 md:h-64 w-full bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">
+    <div className="bg-background flex flex-col min-h-screen items-center overflow-hidden">
+      {/* Cover Image - Now using the actual coverImage from user data */}
+      <div 
+        className="relative h-48 md:h-64 w-full bg-cover bg-center"
+        style={{
+          backgroundImage: currentUser?.coverImage 
+            ? `url(${currentUser.coverImage})` 
+            : 'linear-gradient(to right, #3b82f6, #8b5cf6, #ec4899)'
+        }}
+      >
         <div className="absolute inset-0 bg-black/20" />
       </div>
 
@@ -75,7 +82,8 @@ export default function ProfilePage() {
         <div className="relative -mt-16 md:-mt-20">
           <div className="flex flex-col md:flex-row items-start md:items-end gap-6 mb-8">
             <Avatar className="h-32 w-32 border-4 border-background">
-              <AvatarImage src={currentUser?.profilePicture || "/placeholder.svg?height=128&width=128"} />
+              {/* Using avatar instead of profilePicture to match your database field */}
+              <AvatarImage src={currentUser?.avatar} />
               <AvatarFallback className="text-4xl">
                 {currentUser?.username?.charAt(0)?.toUpperCase() || 'U'}
               </AvatarFallback>

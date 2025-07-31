@@ -1,15 +1,33 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { Menu, Search, Bell, User, ArrowLeft, X, Play } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Menu, Search, Bell, User, ArrowLeft, X, Play, LogOutIcon } from "lucide-react";
 import { SearchResults } from "./SearchResults";
+import { useDispatch, useSelector } from "react-redux";
+import { clearCredentials, logoutUser, selectIsAuthenticated } from '../../store/features/atuhSlice'
 
 export const Header = () => {
   const [isMobSearch, setIsMobSearch] = useState(false);
   const [query, setQuery] = useState("");
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const isAuthenticated = useSelector(selectIsAuthenticated);
 
   const handleMobSearch = () => {
     setIsMobSearch(!isMobSearch);
   };
+
+  const handleLogout = async () => {
+    try {
+        // Attempt proper logout
+        await dispatch(logoutUser()).unwrap();
+    } catch (error) {
+        console.error("Logout error:", error);
+    } finally {
+        // Always clear local state and redirect
+        dispatch(clearCredentials());
+        navigate("/login");
+    }
+};
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
@@ -135,14 +153,36 @@ export const Header = () => {
               </button>
 
               {/* User */}
-              <Link to="/login">
+              {isAuthenticated ? (
+                <Link to="/profile">
+                  <button
+                    className="rounded-full p-2 hover:bg-gray-100 transition-colors"
+                    aria-label="User profile"
+                  >
+                    <User className="h-5 w-5" />
+                  </button>
+                </Link>
+              ) : (
+                <Link to="/login">
+                  <button
+                    className="rounded-full p-2 hover:bg-gray-100 transition-colors"
+                    aria-label="User profile"
+                  >
+                    <User className="h-5 w-5" />
+                  </button>
+                </Link>
+              )}
+
+              {/* Logout - only show if authenticated */}
+              {isAuthenticated && (
                 <button
+                  onClick={handleLogout}
                   className="rounded-full p-2 hover:bg-gray-100 transition-colors"
-                  aria-label="User profile"
+                  aria-label="Logout"
                 >
-                  <User className="h-5 w-5" />
+                  <LogOutIcon className="h-5 w-5" />
                 </button>
-              </Link>
+              )}
             </div>
           </>
         )}

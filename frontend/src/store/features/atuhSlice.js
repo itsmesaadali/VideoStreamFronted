@@ -23,21 +23,24 @@ export const registerUser = createAsyncThunk(
 
 
 export const loginUser = createAsyncThunk(
-    'user/login',
-    async({username, email, password},{rejectWithValue}) =>{
-        try {
-            const response = await axios.post(`${backendUrl}/users/login`,{
-                username,
-                email,
-                password
-            })
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response.data)
-        }
-    }
-)
+  'user/login',
+  async ({ login, password }, { rejectWithValue }) => {
+    try {
+      // Determine if login is email or username
+      const isEmail = login.includes('@');
+      
+      const requestData = isEmail 
+        ? { email: login, password }
+        : { username: login, password };
 
+      const response = await axios.post(`${backendUrl}/users/login`, requestData);
+      return response.data;
+    } catch (error) {
+      // Return consistent error format
+      return rejectWithValue(error.response?.data?.message || 'Login failed. Please try again.');
+    }
+  }
+);
 
 export const logoutUser = createAsyncThunk(
     'user/logout',
@@ -76,19 +79,9 @@ export const getCurrentUser = createAsyncThunk(
   }
 );
 
-export const googleAuth = createAsyncThunk(
-  'user/googleAuth',
-  async (_, { rejectWithValue }) => {
-    try {
-      // This will redirect to Google's consent screen
-      window.location.href = `${backendUrl}/users/auth/google`;
-    } catch (error) {
-      return rejectWithValue(error.response.data);
-    }
-  }
-);
 
-const initialState = {  // Fixed typo (was 'intialState')
+
+const initialState = {  
     user:null,
     accessToken:null,
     refreshToken:null,
@@ -100,7 +93,7 @@ const initialState = {  // Fixed typo (was 'intialState')
 
 const userSlice = createSlice({
     name:'user',
-    initialState,  // Fixed to use the correct variable name
+    initialState,  
     reducers:{
         setCredentials:(state, action) =>{
             state.user = action.payload.user;
@@ -128,10 +121,10 @@ const userSlice = createSlice({
     });
     builder.addCase(registerUser.fulfilled, (state, action) => {
       state.loading = false;
-      state.user = action.payload.data.user;  // Changed to access user data
-      state.accessToken = action.payload.data.accessToken;  // Added token handling
-      state.refreshToken = action.payload.data.refreshToken;  // Added token handling
-      state.isAuthenticated = true;  // Changed to true since we're logging in
+      state.user = action.payload.data.user;  
+      state.accessToken = action.payload.data.accessToken; 
+      state.refreshToken = action.payload.data.refreshToken;  
+      state.isAuthenticated = true;  
     });
     builder.addCase(registerUser.rejected, (state, action) => {
       state.loading = false;
@@ -209,17 +202,6 @@ const userSlice = createSlice({
       state.isAuthenticated = false;
     });
 
-    builder.addCase(googleAuth.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-    builder.addCase(googleAuth.fulfilled, (state) => {
-      state.loading = false;
-    })
-    builder.addCase(googleAuth.rejected, (state, action) => {
-      state.loading = false;
-      state.error = action.payload.message || "Google authentication failed";
-    });
 
     }
 })

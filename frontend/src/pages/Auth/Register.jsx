@@ -1,8 +1,8 @@
-import { Link, useNavigate , useLocation} from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
-import { registerUser, googleAuth } from '../../store/features/atuhSlice'
+import { registerUser } from '../../store/features/atuhSlice';
 import { Button } from "../../components/UI/Button";
 import { Input } from "../../components/UI/Input";
 import { Label } from "../../components/UI/Label";
@@ -17,7 +17,7 @@ export default function RegisterPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading, error } = useSelector((state) => state.user);
+  const { loading, error, isAuthenticated } = useSelector((state) => state.user);
 
   const {
     register,
@@ -42,27 +42,14 @@ export default function RegisterPage() {
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [coverImagePreview, setCoverImagePreview] = useState(null);
 
-  // Handle Google OAuth callback
+  // Handle successful registration
   useEffect(() => {
-    const query = new URLSearchParams(location.search);
-    const accessToken = query.get("accessToken");
-    const refreshToken = query.get("refreshToken");
-    const userData = query.get("user");
-    const error = query.get("error");
-
-    if (error) {
-      dispatch(setCredentials({ error: decodeURIComponent(error) }));
-    } else if (accessToken && refreshToken && userData) {
-      dispatch(
-        setCredentials({
-          user: JSON.parse(decodeURIComponent(userData)),
-          accessToken,
-          refreshToken,
-        })
-      );
+    if (isAuthenticated) {
       navigate("/profile");
     }
-  }, [location, dispatch, navigate]);
+  }, [isAuthenticated, navigate]);
+
+
 
   const handleFileChange = (field, e) => {
     const file = e.target.files?.[0];
@@ -80,24 +67,32 @@ export default function RegisterPage() {
 
   const nextStep = async () => {
     if (currentStep === 1) {
-      const isValid = await trigger(["fullname", "username", "email", "password", "confirmPassword"]);
+      const isValid = await trigger([
+        "fullname", 
+        "username", 
+        "email", 
+        "password", 
+        "confirmPassword"
+      ]);
       if (!isValid) return;
     }
-    if (currentStep < 3) setCurrentStep(currentStep + 1);
+    setCurrentStep(prev => Math.min(prev + 1, 3));
   };
 
   const prevStep = () => {
-    if (currentStep > 1) setCurrentStep(currentStep - 1);
+    setCurrentStep(prev => Math.max(prev - 1, 1));
   };
 
-  const handleGoogleAuth = () => {
-    dispatch(googleAuth());
-  };
+ 
 
   const onSubmit = async (data) => {
     if (!data.avatar) {
-        alert("Please upload a profile picture");
-        return;
+      setError("avatar", { 
+        type: "manual", 
+        message: "Profile picture is required" 
+      });
+      setCurrentStep(2);
+      return;
     }
 
     const formData = new FormData();
@@ -105,27 +100,18 @@ export default function RegisterPage() {
     formData.append("email", data.email);
     formData.append("username", data.username);
     formData.append("password", data.password);
-    
-    // Append the avatar file directly
     formData.append("avatar", data.avatar);
     
-    // Optional cover image
     if (data.coverImage) {
-        formData.append("coverImage", data.coverImage);
+      formData.append("coverImage", data.coverImage);
     }
 
     try {
-        const result = await dispatch(registerUser(formData)); // Pass formData directly
-        if (result.payload) {
-            navigate("/profile");
-        }else
-        {
-          navigate('/login')
-        }
+      await dispatch(registerUser(formData));
     } catch (error) {
-        console.error("Registration error:", error);
+      console.error("Registration error:", error);
     }
-};
+  };
 
   const progress = (currentStep / 3) * 100;
 
@@ -178,29 +164,6 @@ export default function RegisterPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6 p-8">
-                  {/* Google Sign-In */}
-                  <div className="space-y-4">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full h-12 rounded-2xl flex items-center justify-center gap-3 text-base font-medium"
-                      onClick={handleGoogleAuth}
-                      disabled={loading}
-                    >
-                      <img
-                        src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-                        alt="Google"
-                        className="h-5 w-5"
-                      />
-                      Continue with Google
-                    </Button>
-
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <div className="flex-grow h-px bg-muted-foreground/30" />
-                      or continue with email
-                      <div className="flex-grow h-px bg-muted-foreground/30" />
-                    </div>
-                  </div>
 
                   {/* Form Fields */}
                   <div className="space-y-4">
@@ -240,6 +203,10 @@ export default function RegisterPage() {
                           pattern: {
                             value: /^[a-zA-Z0-9_]+$/,
                             message: "Username can only contain letters, numbers and underscores"
+                          },
+                          minLength: {
+                            value: 3,
+                            message: "Username must be at least 3 characters"
                           }
                         })}
                       />
@@ -348,7 +315,11 @@ export default function RegisterPage() {
               <>
                 <CardHeader className="text-center pb-4">
                   <CardTitle className="text-2xl flex items-center justify-center gap-2">
-                    <CheckCircle className="h-6 w-6 text-green-500" />
+                    {watch('avatar') ? (
+                      <CheckCircle className="h-6 w-6 text-green-500" />
+                    ) : (
+                      <Camera className="h-6 w-6 text-red-600" />
+                    )}
                     Profile Picture
                   </CardTitle>
                   <CardDescription>
@@ -356,13 +327,6 @@ export default function RegisterPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6 p-8">
-                  <div className="text-center">
-                    <div className="inline-flex items-center gap-2 bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 px-4 py-2 rounded-full text-sm font-medium mb-6">
-                      <CheckCircle className="h-4 w-4" />
-                      Account information saved successfully!
-                    </div>
-                  </div>
-
                   <div className="flex flex-col items-center space-y-6">
                     <Avatar className="h-32 w-32 border-4 border-background shadow-lg">
                       <AvatarImage src={avatarPreview || "/placeholder.svg?height=128&width=128"} />
@@ -380,9 +344,9 @@ export default function RegisterPage() {
                       </p>
                     </div>
 
-                    {!watch('avatar') && (
+                    {errors.avatar && (
                       <p className="text-red-500 text-sm text-center">
-                        Profile picture is required
+                        {errors.avatar.message}
                       </p>
                     )}
 
@@ -522,28 +486,26 @@ export default function RegisterPage() {
                       <ArrowLeft className="mr-2 h-4 w-4" />
                       Back
                     </Button>
-                    <div className="flex gap-2 flex-1">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => handleSubmit(onSubmit)()}
-                        className="flex-1 rounded-2xl h-12 bg-transparent"
-                      >
-                        Skip
-                      </Button>
-                      <Button
-                        type="submit"
-                        className="flex-1 bg-red-600 hover:bg-red-700 rounded-2xl h-12"
-                        disabled={loading || !watch('avatar')}
-                      >
-                        {loading ? "Loading..." : (
-                          <>
-                            <CheckCircle className="mr-2 h-4 w-4" />
-                            Complete
-                          </>
-                        )}
-                      </Button>
-                    </div>
+                    <Button
+                      type="submit"
+                      className="flex-1 bg-red-600 hover:bg-red-700 rounded-2xl h-12"
+                      disabled={loading || !watch('avatar')}
+                    >
+                      {loading ? (
+                        <span className="flex items-center justify-center">
+                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Creating account...
+                        </span>
+                      ) : (
+                        <>
+                          <CheckCircle className="mr-2 h-4 w-4" />
+                          Complete Registration
+                        </>
+                      )}
+                    </Button>
                   </div>
                 </CardContent>
               </>
