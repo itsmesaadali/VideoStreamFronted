@@ -1,5 +1,5 @@
 import { useSelector } from "react-redux";
-import { selectCurrentUser } from "../store/features/atuhSlice";
+import { selectCurrentUser } from "../store/features/authSlice";
 import {Link} from "react-router-dom";
 import { Button } from "../components/UI/Button";
 import {
@@ -84,9 +84,6 @@ export default function ProfilePage() {
             <Avatar className="h-32 w-32 border-4 border-background">
               {/* Using avatar instead of profilePicture to match your database field */}
               <AvatarImage src={currentUser?.avatar} />
-              <AvatarFallback className="text-4xl">
-                {currentUser?.username?.charAt(0)?.toUpperCase() || 'U'}
-              </AvatarFallback>
             </Avatar>
 
             <div className="flex-1">

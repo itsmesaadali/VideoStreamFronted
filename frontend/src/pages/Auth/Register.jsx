@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
-import { registerUser } from '../../store/features/atuhSlice';
+import { registerUser } from '../../store/features/authSlice';
 import { Button } from "../../components/UI/Button";
 import { Input } from "../../components/UI/Input";
 import { Label } from "../../components/UI/Label";

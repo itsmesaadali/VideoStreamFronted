@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Menu, Search, Bell, User, ArrowLeft, X, Play, LogOutIcon } from "lucide-react";
 import { SearchResults } from "./SearchResults";
 import { useDispatch, useSelector } from "react-redux";
-import { clearCredentials, logoutUser, selectIsAuthenticated } from '../../store/features/atuhSlice'
+import {  logoutUser, selectIsAuthenticated } from '../../store/features/authSlice'
 
 export const Header = () => {
   const [isMobSearch, setIsMobSearch] = useState(false);
@@ -24,7 +24,6 @@ export const Header = () => {
         console.error("Logout error:", error);
     } finally {
         // Always clear local state and redirect
-        dispatch(clearCredentials());
         navigate("/login");
     }
 };

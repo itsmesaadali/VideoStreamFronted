@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
-import { loginUser, selectIsAuthenticated, selectAuthLoading, selectAuthError } from "../../store/features/atuhSlice";
+import { loginUser, selectIsAuthenticated, selectAuthLoading, selectAuthError } from "../../store/features/authSlice";
 import { Play, User, Lock, Mail } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/UI/Card";
 import { Button } from "../../components/UI/Button";
