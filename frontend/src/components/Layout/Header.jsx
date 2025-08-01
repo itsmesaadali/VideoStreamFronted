@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import  { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Menu, Search, Bell, User, ArrowLeft, X, Play, LogOut } from "lucide-react";
 import { SearchResults } from "./SearchResults";
 import { useDispatch, useSelector } from "react-redux";
 import { logoutUser, selectIsAuthenticated, selectCurrentUser } from '../../store/features/authSlice';
-import { Avatar, AvatarFallback, AvatarImage } from "../UI/Avatar";
+import { Avatar, AvatarImage } from "../UI/Avatar";
 
 export const Header = () => {
   const [isMobSearch, setIsMobSearch] = useState(false);
@@ -150,9 +150,6 @@ export const Header = () => {
                   <Link to="/profile">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={currentUser?.avatar} />
-                      <AvatarFallback>
-                        {currentUser?.username?.charAt(0).toUpperCase() || <User className="h-4 w-4" />}
-                      </AvatarFallback>
                     </Avatar>
                   </Link>
                   <button

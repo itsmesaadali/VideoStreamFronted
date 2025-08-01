@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
-import { registerUser, clearAuthError } from '../../store/features/authSlice';
+import { registerUser, clearAuthError, loginWithGoogle } from '../../store/features/authSlice';
 import { Button } from "../../components/UI/Button";
 import { Input } from "../../components/UI/Input";
 import { Label } from "../../components/UI/Label";
@@ -54,6 +54,10 @@ export default function RegisterPage() {
     }
   }, [isAuthenticated, navigate]);
 
+
+  const handleGoogleLogin = () => {
+    dispatch(loginWithGoogle());
+  };
 
 
   const handleFileChange = (field, e) => {
@@ -169,6 +173,26 @@ export default function RegisterPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6 p-8">
+
+                  <div className="mb-6">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleGoogleLogin}
+                      className="w-full h-12 rounded-2xl flex items-center justify-center gap-2 border border-gray-300 hover:border-gray-400"
+                    >
+                      <img
+                        src="https://th.bing.com/th/id/ODF.cQGDzDdW-31GYqwCeCzTrw?w=32&h=32&qlt=90&pcl=fffffc&o=6&pid=1.2"
+                        alt="Google"
+                        className="h-5 w-5"
+                      />
+
+                      Continue with Google
+                    </Button>
+
+                    <div className="my-4 text-center text-sm text-muted-foreground">or</div>
+                  </div>
+
 
                   {/* Form Fields */}
                   <div className="space-y-4">

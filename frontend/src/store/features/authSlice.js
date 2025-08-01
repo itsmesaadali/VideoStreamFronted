@@ -60,6 +60,19 @@ export const getCurrentUser = createAsyncThunk(
   }
 );
 
+export const loginWithGoogle = createAsyncThunk(
+  'auth/googleLogin',
+  async (_, { rejectWithValue }) => {
+    try {
+      // Trigger browser redirect to your backend
+      window.location.href = `${import.meta.env.VITE_BACKEND_URL}/users/auth/google`;
+    } catch (error) {
+      return rejectWithValue('Failed to initiate Google login');
+    }
+  }
+);
+
+
 const initialState = {
   user: null,
   accessToken: null,
