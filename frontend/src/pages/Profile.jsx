@@ -28,26 +28,6 @@ export default function ProfilePage() {
     ? new Date(currentUser.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
     : 'Unknown';
 
-  if (!isAuthenticated) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <Card className="w-full max-w-md text-center p-8">
-          <h2 className="text-2xl font-bold mb-4">Profile Not Available</h2>
-          <p className="text-muted-foreground mb-6">
-            You need to be logged in to view this profile
-          </p>
-          <div className="flex gap-4 justify-center">
-            <Button asChild variant="outline">
-              <Link to="/login">Sign In</Link>
-            </Button>
-            <Button asChild>
-              <Link to="/register">Create Account</Link>
-            </Button>
-          </div>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div className="bg-background flex flex-col min-h-screen items-center overflow-hidden">
