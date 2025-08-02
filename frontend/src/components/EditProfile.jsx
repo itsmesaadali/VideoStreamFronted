@@ -1,9 +1,14 @@
 // components/EditProfile.jsx
-import { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { updateUserProfile, changePassword, uploadAvatar, uploadCoverImage } from "../store/features/authSlice";
+import { useState } from "react";
+import { useDispatch } from "react-redux";
+import { useForm } from "react-hook-form";
+import {
+  changePassword,
+  uploadAvatar,
+  uploadCoverImage,
+} from "../store/features/authSlice";
 import { Button } from "./UI/Button";
-import { Card, CardContent, CardHeader, CardTitle } from "./UI/Card";
+import { Card, CardContent } from "./UI/Card";
 import { Input } from "./UI/Input";
 import { Label } from "./UI/Label";
 import { Avatar, AvatarImage } from "./UI/Avatar";
@@ -11,24 +16,28 @@ import { X, Upload as UploadIcon } from "lucide-react";
 
 export const EditProfile = ({ user, onClose }) => {
   const dispatch = useDispatch();
- 
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
-  });
   const [avatarFile, setAvatarFile] = useState(null);
   const [coverFile, setCoverFile] = useState(null);
-  const [activeTab, setActiveTab] = useState('password');
-  const [errors, setErrors] = useState({});
-  const [message, setMessage] = useState('');
+  const [activeTab, setActiveTab] = useState("password");
+  const [message, setMessage] = useState("");
 
-  
+  // Password form
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+    setError,
+    watch,
+  } = useForm({
+    defaultValues: {
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    },
+  });
 
-  const handlePasswordChange = (e) => {
-    const { name, value } = e.target;
-    setPasswordData(prev => ({ ...prev, [name]: value }));
-  };
+  const newPassword = watch("newPassword");
 
   const handleAvatarChange = (e) => {
     if (e.target.files && e.target.files[0]) {
@@ -42,70 +51,80 @@ export const EditProfile = ({ user, onClose }) => {
     }
   };
 
-  const handleProfileSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await dispatch(updateUserProfile(formData)).unwrap();
-      setMessage('Profile updated successfully!');
-      setTimeout(() => setMessage(''), 3000);
-    } catch (error) {
-      setErrors(error);
-    }
-  };
+const onSubmitPassword = async (data) => {  // Remove the 'e' parameter
+  if (data.newPassword !== data.confirmPassword) {
+    setError("confirmPassword", {
+      type: "manual",
+      message: "Passwords don't match"
+    });
+    return;
+  }
 
-  const handlePasswordSubmit = async (e) => {
-    e.preventDefault();
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      setErrors({ confirmPassword: "Passwords don't match" });
+  try {
+    await dispatch(changePassword({
+      currentPassword: data.currentPassword,
+      newPassword: data.newPassword
+    })).unwrap();
+    
+    setMessage('Password changed successfully!');
+    reset();
+    setTimeout(() => setMessage(''), 3000);
+  } catch (error) {
+    if (error.message === "Invalid old password") {
+      setError('currentPassword', {
+        type: 'manual',
+        message: 'Current password is incorrect'
+      });
+    } else {
+      setMessage(error.message || 'An error occurred');
+      setTimeout(() => setMessage(''), 3000);
+    }
+  }
+};
+
+  const onSubmitAvatar = async (e) => {
+    e.preventDefault(); // Prevent default form submission
+    if (!avatarFile) {
+      setMessage("Please select an avatar image");
+      setTimeout(() => setMessage(""), 3000);
       return;
     }
-    
-    try {
-      await dispatch(changePassword({
-        currentPassword: passwordData.currentPassword,
-        newPassword: passwordData.newPassword
-      })).unwrap();
-      setMessage('Password changed successfully!');
-      setPasswordData({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: '',
-      });
-      setTimeout(() => setMessage(''), 3000);
-    } catch (error) {
-      setErrors(error);
-    }
-  };
 
-  const handleAvatarSubmit = async (e) => {
-    e.preventDefault();
-    if (!avatarFile) return;
-    
     try {
       const formData = new FormData();
-      formData.append('avatar', avatarFile);
-      await dispatch(uploadAvatar(formData)).unwrap();
-      setMessage('Avatar updated successfully!');
+      formData.append("avatar", avatarFile);
+
+      const result = await dispatch(uploadAvatar(formData)).unwrap();
+
+      setMessage("Avatar updated successfully!");
       setAvatarFile(null);
-      setTimeout(() => setMessage(''), 3000);
+      setTimeout(() => setMessage(""), 3000);
     } catch (error) {
-      setErrors(error);
+      setMessage(error.message || "Failed to update avatar");
+      setTimeout(() => setMessage(""), 3000);
     }
   };
 
-  const handleCoverSubmit = async (e) => {
-    e.preventDefault();
-    if (!coverFile) return;
-    
+  const onSubmitCover = async (e) => {
+    e.preventDefault(); // Prevent default form submission
+    if (!coverFile) {
+      setMessage("Please select a cover image");
+      setTimeout(() => setMessage(""), 3000);
+      return;
+    }
+
     try {
       const formData = new FormData();
-      formData.append('coverImage', coverFile);
-      await dispatch(uploadCoverImage(formData)).unwrap();
-      setMessage('Cover image updated successfully!');
+      formData.append("coverImage", coverFile);
+
+      const result = await dispatch(uploadCoverImage(formData)).unwrap();
+
+      setMessage("Cover image updated successfully!");
       setCoverFile(null);
-      setTimeout(() => setMessage(''), 3000);
+      setTimeout(() => setMessage(""), 3000);
     } catch (error) {
-      setErrors(error);
+      setMessage(error.message || "Failed to update cover image");
+      setTimeout(() => setMessage(""), 3000);
     }
   };
 
@@ -115,28 +134,36 @@ export const EditProfile = ({ user, onClose }) => {
         <div className="p-6 bg-white">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold">Edit Profile</h2>
-            <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100">
+            <button
+              onClick={onClose}
+              className="p-2 rounded-full hover:bg-gray-100"
+            >
               <X className="h-5 w-5" />
             </button>
           </div>
 
           <div className="flex border-b mb-6">
-
             <button
-              className={`px-4 py-2 font-medium ${activeTab === 'password' ? 'border-b-2 border-red-500' : ''}`}
-              onClick={() => setActiveTab('password')}
+              className={`px-4 py-2 font-medium ${
+                activeTab === "password" ? "border-b-2 border-red-500" : ""
+              }`}
+              onClick={() => setActiveTab("password")}
             >
               Password
             </button>
             <button
-              className={`px-4 py-2 font-medium ${activeTab === 'avatar' ? 'border-b-2 border-red-500' : ''}`}
-              onClick={() => setActiveTab('avatar')}
+              className={`px-4 py-2 font-medium ${
+                activeTab === "avatar" ? "border-b-2 border-red-500" : ""
+              }`}
+              onClick={() => setActiveTab("avatar")}
             >
               Avatar
             </button>
             <button
-              className={`px-4 py-2 font-medium ${activeTab === 'cover' ? 'border-b-2 border-red-500' : ''}`}
-              onClick={() => setActiveTab('cover')}
+              className={`px-4 py-2 font-medium ${
+                activeTab === "cover" ? "border-b-2 border-red-500" : ""
+              }`}
+              onClick={() => setActiveTab("cover")}
             >
               Cover Image
             </button>
@@ -148,82 +175,115 @@ export const EditProfile = ({ user, onClose }) => {
             </div>
           )}
 
-          {activeTab === 'password' && (
-            <form onSubmit={handlePasswordSubmit}>
+          {activeTab === "password" && (
+            <form onSubmit={handleSubmit(onSubmitPassword)}>
               <Card className="mb-4">
                 <CardContent className="p-6 space-y-4">
-                  {user?.provider === 'google' ? (
+                  {user?.isGoogleAuth === true ? (
                     <div className="text-center py-4">
                       <p className="text-muted-foreground">
-                        You signed up with Google. To change your password, please update it through your Google account.
+                        You signed up with Google. To change your password,
+                        please update it through your Google account.
                       </p>
                     </div>
                   ) : (
                     <>
                       <div>
-                        <Label htmlFor="currentPassword">Current Password</Label>
+                        <Label htmlFor="currentPassword">
+                          Current Password
+                        </Label>
                         <Input
                           id="currentPassword"
-                          name="currentPassword"
                           type="password"
-                          value={passwordData.currentPassword}
-                          onChange={handlePasswordChange}
                           placeholder="Enter current password"
+                          {...register("currentPassword", {
+                            required: "Current password is required",
+                            minLength: {
+                              value: 6,
+                              message: "Password must be at least 6 characters",
+                            },
+                          })}
                         />
                         {errors.currentPassword && (
-                          <p className="text-sm text-red-500">{errors.currentPassword}</p>
+                          <p className="text-sm text-red-500">
+                            {errors.currentPassword.message}
+                          </p>
                         )}
                       </div>
                       <div>
                         <Label htmlFor="newPassword">New Password</Label>
                         <Input
                           id="newPassword"
-                          name="newPassword"
                           type="password"
-                          value={passwordData.newPassword}
-                          onChange={handlePasswordChange}
                           placeholder="Enter new password"
+                          {...register("newPassword", {
+                            required: "New password is required",
+                            minLength: {
+                              value: 6,
+                              message: "Password must be at least 6 characters",
+                            },
+                          })}
                         />
                         {errors.newPassword && (
-                          <p className="text-sm text-red-500">{errors.newPassword}</p>
+                          <p className="text-sm text-red-500">
+                            {errors.newPassword.message}
+                          </p>
                         )}
                       </div>
                       <div>
-                        <Label htmlFor="confirmPassword">Confirm Password</Label>
+                        <Label htmlFor="confirmPassword">
+                          Confirm Password
+                        </Label>
                         <Input
                           id="confirmPassword"
-                          name="confirmPassword"
                           type="password"
-                          value={passwordData.confirmPassword}
-                          onChange={handlePasswordChange}
                           placeholder="Confirm new password"
+                          {...register("confirmPassword", {
+                            required: "Please confirm your password",
+                            validate: (value) =>
+                              value === newPassword || "Passwords don't match",
+                          })}
                         />
                         {errors.confirmPassword && (
-                          <p className="text-sm text-red-500">{errors.confirmPassword}</p>
+                          <p className="text-sm text-red-500">
+                            {errors.confirmPassword.message}
+                          </p>
                         )}
                       </div>
                     </>
                   )}
                 </CardContent>
               </Card>
-              {user?.provider !== 'google' && (
+              {user?.isGoogleAuth !== true && (
                 <div className="flex justify-end gap-2">
-                  <Button variant="outline" onClick={onClose}>Cancel</Button>
+                  <Button variant="outline" onClick={onClose}>
+                    Cancel
+                  </Button>
                   <Button type="submit">Change Password</Button>
                 </div>
               )}
             </form>
           )}
 
-          {activeTab === 'avatar' && (
-            <form onSubmit={handleAvatarSubmit}>
+          {activeTab === "avatar" && (
+            <form onSubmit={onSubmitAvatar}>
               <Card className="mb-4">
                 <CardContent className="p-6">
                   <div className="flex flex-col items-center gap-4">
                     <Avatar className="h-32 w-32">
-                      <AvatarImage 
-                        src={avatarFile ? URL.createObjectURL(avatarFile) : user?.avatar} 
-                      />
+                      {avatarFile ? (
+                        <img
+                          src={URL.createObjectURL(avatarFile)}
+                          alt="Preview"
+                          className="h-full w-full object-cover rounded-full"
+                        />
+                      ) : user?.avatar ? (
+                        <AvatarImage src={user.avatar} alt="User Avatar" />
+                      ) : (
+                        <span className="text-4xl font-bold text-white bg-gray-500 h-full w-full flex items-center justify-center rounded-full">
+                          {user?.username?.charAt(0).toUpperCase() || "U"}
+                        </span>
+                      )}
                     </Avatar>
                     <div>
                       <Label htmlFor="avatar-upload" className="cursor-pointer">
@@ -235,40 +295,46 @@ export const EditProfile = ({ user, onClose }) => {
                       <input
                         id="avatar-upload"
                         type="file"
-                        accept="image/*"
+                        accept="image/png, image/jpeg, image/jpg, image/webp"
                         onChange={handleAvatarChange}
                         className="hidden"
                       />
                       {avatarFile && (
-                        <p className="text-sm mt-2">{avatarFile.name}</p>
+                        <p className="text-sm mt-2 text-center">
+                          {avatarFile.name}
+                        </p>
                       )}
                     </div>
                   </div>
                 </CardContent>
               </Card>
               <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={onClose}>Cancel</Button>
-                <Button type="submit" disabled={!avatarFile}>Upload Avatar</Button>
+                <Button variant="outline" onClick={onClose}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={!avatarFile}>
+                  Upload Avatar
+                </Button>
               </div>
             </form>
           )}
 
-          {activeTab === 'cover' && (
-            <form onSubmit={handleCoverSubmit}>
+          {activeTab === "cover" && (
+            <form onSubmit={onSubmitCover}>
               <Card className="mb-4">
                 <CardContent className="p-6">
                   <div className="flex flex-col items-center gap-4">
                     <div className="relative w-full h-40 rounded-lg overflow-hidden bg-gray-100">
                       {coverFile ? (
-                        <img 
-                          src={URL.createObjectURL(coverFile)} 
-                          alt="Preview" 
+                        <img
+                          src={URL.createObjectURL(coverFile)}
+                          alt="Preview"
                           className="w-full h-full object-cover"
                         />
                       ) : user?.coverImage ? (
-                        <img 
-                          src={user.coverImage} 
-                          alt="Cover" 
+                        <img
+                          src={user.coverImage}
+                          alt="Cover"
                           className="w-full h-full object-cover"
                         />
                       ) : (
@@ -297,8 +363,12 @@ export const EditProfile = ({ user, onClose }) => {
                 </CardContent>
               </Card>
               <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={onClose}>Cancel</Button>
-                <Button type="submit" disabled={!coverFile}>Upload Cover</Button>
+                <Button variant="outline" onClick={onClose}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={!coverFile}>
+                  Upload Cover
+                </Button>
               </div>
             </form>
           )}

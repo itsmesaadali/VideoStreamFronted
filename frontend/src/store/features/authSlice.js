@@ -1,7 +1,6 @@
-// features/authSlice
+// features/authSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { axiosInstance } from '../../utils/axiosConfig';
-
 
 // Async Thunks
 export const registerUser = createAsyncThunk(
@@ -53,7 +52,7 @@ export const getCurrentUser = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.get('/users/current-user');
-      return response.data.data; // Access the data property
+      return response.data.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch user');
     }
@@ -64,24 +63,9 @@ export const loginWithGoogle = createAsyncThunk(
   'auth/googleLogin',
   async (_, { rejectWithValue }) => {
     try {
-      // Trigger browser redirect to your backend
       window.location.href = `${import.meta.env.VITE_BACKEND_URL}/users/auth/google`;
     } catch (error) {
       return rejectWithValue('Failed to initiate Google login');
-    }
-  }
-);
-
-
-// Add these async thunks to your existing authSlice
-export const updateUserProfile = createAsyncThunk(
-  'auth/updateProfile',
-  async (profileData, { rejectWithValue }) => {
-    try {
-      const response = await axiosInstance.patch('/users/profile', profileData);
-      return response.data;
-    } catch (err) {
-      return rejectWithValue(err.response.data);
     }
   }
 );
@@ -90,10 +74,13 @@ export const changePassword = createAsyncThunk(
   'auth/changePassword',
   async (passwordData, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.post('/users/change-password', passwordData);
+      const response = await axiosInstance.post('/users/change-password', {
+        oldPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword
+      });
       return response.data;
     } catch (err) {
-      return rejectWithValue(err.response.data);
+      return rejectWithValue(err.response?.data?.message || 'Password change failed');
     }
   }
 );
@@ -102,14 +89,14 @@ export const uploadAvatar = createAsyncThunk(
   'auth/uploadAvatar',
   async (formData, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.post('/users/avatar', formData, {
+      const response = await axiosInstance.patch('/users/avatar', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
       return response.data;
     } catch (err) {
-      return rejectWithValue(err.response.data);
+      return rejectWithValue(err.response?.data?.message || 'Avatar upload failed');
     }
   }
 );
@@ -118,18 +105,17 @@ export const uploadCoverImage = createAsyncThunk(
   'auth/uploadCoverImage',
   async (formData, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.post('/users/cover', formData, {
+      const response = await axiosInstance.patch('/users/cover-image', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
       return response.data;
     } catch (err) {
-      return rejectWithValue(err.response.data);
+      return rejectWithValue(err.response?.data?.message || 'Cover image upload failed');
     }
   }
 );
-
 
 const initialState = {
   user: null,
@@ -144,7 +130,7 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-     clearAuthError: (state) => {
+    clearAuthError: (state) => {
       state.error = null;
     },
     updateTokens: (state, action) => {
@@ -216,23 +202,58 @@ const authSlice = createSlice({
         state.loading = true;
       })
       .addCase(getCurrentUser.fulfilled, (state, action) => {
-        state.user = action.payload; // Should be the user object
-      state.isAuthenticated = true;
-      state.loading = false;
+        state.user = action.payload;
+        state.isAuthenticated = true;
+        state.loading = false;
       })
       .addCase(getCurrentUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
 
-      .addCase(updateUserProfile.fulfilled, (state, action) => {
-        state.user = { ...state.user, ...action.payload };
+      // Change Password
+      .addCase(changePassword.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(changePassword.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(changePassword.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Upload Avatar
+      .addCase(uploadAvatar.pending, (state) => {
+        state.loading = true;
+        state.error = null;
       })
       .addCase(uploadAvatar.fulfilled, (state, action) => {
-        state.user.avatar = action.payload.avatarUrl;
+        state.loading = false;
+        if (state.user) {
+          state.user.avatar = action.payload.avatarUrl;
+        }
+      })
+      .addCase(uploadAvatar.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Upload Cover Image
+      .addCase(uploadCoverImage.pending, (state) => {
+        state.loading = true;
+        state.error = null;
       })
       .addCase(uploadCoverImage.fulfilled, (state, action) => {
-        state.user.coverImage = action.payload.coverImageUrl;
+        state.loading = false;
+        if (state.user) {
+          state.user.coverImage = action.payload.coverImageUrl;
+        }
+      })
+      .addCase(uploadCoverImage.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   }
 });
