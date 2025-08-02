@@ -21,6 +21,7 @@ function App() {
           <Route path="/" element={<AppLayout />}>
             <Route path="/" element={<Home />} />
 
+
             <Route path="/profile" element={ <ProtectedRoute> <ProfilePage /> </ProtectedRoute> }/>
           <Route path="*" element={<NotFoundPage />} />
           </Route>

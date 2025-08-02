@@ -73,6 +73,64 @@ export const loginWithGoogle = createAsyncThunk(
 );
 
 
+// Add these async thunks to your existing authSlice
+export const updateUserProfile = createAsyncThunk(
+  'auth/updateProfile',
+  async (profileData, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.patch('/users/profile', profileData);
+      return response.data;
+    } catch (err) {
+      return rejectWithValue(err.response.data);
+    }
+  }
+);
+
+export const changePassword = createAsyncThunk(
+  'auth/changePassword',
+  async (passwordData, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.post('/users/change-password', passwordData);
+      return response.data;
+    } catch (err) {
+      return rejectWithValue(err.response.data);
+    }
+  }
+);
+
+export const uploadAvatar = createAsyncThunk(
+  'auth/uploadAvatar',
+  async (formData, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.post('/users/avatar', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      return response.data;
+    } catch (err) {
+      return rejectWithValue(err.response.data);
+    }
+  }
+);
+
+export const uploadCoverImage = createAsyncThunk(
+  'auth/uploadCoverImage',
+  async (formData, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.post('/users/cover', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      return response.data;
+    } catch (err) {
+      return rejectWithValue(err.response.data);
+    }
+  }
+);
+
+
 const initialState = {
   user: null,
   accessToken: null,
@@ -165,6 +223,16 @@ const authSlice = createSlice({
       .addCase(getCurrentUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+
+      .addCase(updateUserProfile.fulfilled, (state, action) => {
+        state.user = { ...state.user, ...action.payload };
+      })
+      .addCase(uploadAvatar.fulfilled, (state, action) => {
+        state.user.avatar = action.payload.avatarUrl;
+      })
+      .addCase(uploadCoverImage.fulfilled, (state, action) => {
+        state.user.coverImage = action.payload.coverImageUrl;
       });
   }
 });
