@@ -1,5 +1,5 @@
 // Update the ProfilePage component
-import { useState, useEffect } from "react";
+import {  useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
 import {
@@ -32,13 +32,11 @@ import {
   MessageCircle,
   Share2,
 } from "lucide-react";
-import { EditProfile } from "../components/EditProfile";
 
 export default function ProfilePage() {
   const dispatch = useDispatch();
   const currentUser = useSelector(selectCurrentUser);
   const isAuthenticated = useSelector(selectIsAuthenticated);
-  const [isEditOpen, setIsEditOpen] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -57,10 +55,6 @@ export default function ProfilePage() {
 
   return (
     <div className="bg-background flex flex-col min-h-screen items-center overflow-hidden">
-      {/* Edit Profile Modal */}
-      {isEditOpen && (
-        <EditProfile user={currentUser} onClose={() => setIsEditOpen(false)} />
-      )}
       {/* Cover Image */}
       <div
         className="relative h-48 md:h-64 w-full bg-cover bg-center"
@@ -102,14 +96,15 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    className="rounded-2xl bg-transparent"
-                    onClick={() => setIsEditOpen(true)}
-                  >
-                    <Settings className="h-4 w-4 mr-2" />
-                    Customize
-                  </Button>
+                  <Link to="/profile/edit">
+                    <Button
+                      variant="outline"
+                      className="rounded-2xl bg-transparent"
+                    >
+                      <Settings className="h-4 w-4 mr-2" />
+                      Customize
+                    </Button>
+                  </Link>
                   <Button className="rounded-2xl">
                     <Upload className="h-4 w-4 mr-2" />
                     Upload Video
