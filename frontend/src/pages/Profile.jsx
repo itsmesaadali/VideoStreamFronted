@@ -67,9 +67,6 @@ export default function ProfilePage() {
                     <span>•</span>
                     <span>{userVideos?.length || 0} videos</span>
                   </div>
-                  <p className="text-muted-foreground max-w-2xl">
-                    {currentUser?.bio || 'Welcome to my channel!'}
-                  </p>
                 </div>
 
                 <div className="flex gap-2">
