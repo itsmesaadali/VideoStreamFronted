@@ -10,7 +10,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoute";
 import NotFoundPage from "./pages/NotFoundPage";
 import EditProfilePage from "./pages/EditProfilePage";
-import { Toaster } from "react-hot-toast"; // Import the Toaster component
+import { Toaster } from "react-hot-toast";
 import ChannelProfile from "./pages/ChannelProfile";
 import WatchHistory from "./pages/WatchHistory";
 
@@ -18,17 +18,14 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        {/* Add the Toaster component here */}
         <Toaster
           position="top-right"
           toastOptions={{
-            // Define default options
             duration: 4000,
             style: {
               background: "#363636",
               color: "#fff",
             },
-            // Default options for specific types
             success: {
               duration: 3000,
               theme: {
@@ -47,8 +44,7 @@ function App() {
             path="/login"
             element={
               <PublicRoute>
-                {" "}
-                <LoginPage />{" "}
+                <LoginPage />
               </PublicRoute>
             }
           />
@@ -56,20 +52,18 @@ function App() {
             path="/register"
             element={
               <PublicRoute>
-                {" "}
-                <RegisterPage />{" "}
+                <RegisterPage />
               </PublicRoute>
             }
           />
 
           <Route path="/" element={<AppLayout />}>
-            <Route path="/" element={<Home />} />
+            <Route index element={<Home />} />
             <Route
               path="/profile"
               element={
                 <ProtectedRoute>
-                  {" "}
-                  <ProfilePage />{" "}
+                  <ProfilePage />
                 </ProtectedRoute>
               }
             />
@@ -77,13 +71,23 @@ function App() {
               path="/profile/edit"
               element={
                 <ProtectedRoute>
-                  {" "}
-                  <EditProfilePage />{" "}
+                  <EditProfilePage />
                 </ProtectedRoute>
               }
             />
+            {/* Public channel profile route */}
             <Route path="/c/:username" element={<ChannelProfile />} />
-            <Route path="/history" element={<WatchHistory />} />
+            
+            {/* Protected watch history route */}
+            <Route
+              path="/history"
+              element={
+                <ProtectedRoute>
+                  <WatchHistory />
+                </ProtectedRoute>
+              }
+            />
+            
             <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>
