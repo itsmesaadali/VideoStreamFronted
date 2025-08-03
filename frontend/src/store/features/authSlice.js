@@ -24,7 +24,7 @@ export const loginUser = createAsyncThunk(
   async ({ login, password }, { rejectWithValue }) => {
     try {
       const isEmail = login.includes('@');
-      const requestData = isEmail 
+      const requestData = isEmail
         ? { email: login, password }
         : { username: login, password };
 
@@ -47,6 +47,7 @@ export const logoutUser = createAsyncThunk(
   }
 );
 
+// features/authSlice.js
 export const getCurrentUser = createAsyncThunk(
   'auth/currentUser',
   async (_, { rejectWithValue }) => {
@@ -54,10 +55,15 @@ export const getCurrentUser = createAsyncThunk(
       const response = await axiosInstance.get('/users/current-user');
       return response.data.data;
     } catch (error) {
+      // If unauthorized (401), just return null (don't treat as an error)
+      if (error.response?.status === 401) {
+        return null;
+      }
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch user');
     }
   }
 );
+
 
 export const loginWithGoogle = createAsyncThunk(
   'auth/googleLogin',
@@ -163,7 +169,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      
+
       // Login
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
@@ -180,7 +186,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      
+
       // Logout
       .addCase(logoutUser.pending, (state) => {
         state.loading = true;
@@ -196,15 +202,17 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      
+
       // Current User
       .addCase(getCurrentUser.pending, (state) => {
         state.loading = true;
       })
       .addCase(getCurrentUser.fulfilled, (state, action) => {
-        state.user = action.payload;
-        state.isAuthenticated = true;
         state.loading = false;
+        if (action.payload) {  // Only update if user data exists
+          state.user = action.payload;
+          state.isAuthenticated = true;
+        }
       })
       .addCase(getCurrentUser.rejected, (state, action) => {
         state.loading = false;

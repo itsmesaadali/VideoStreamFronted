@@ -5,14 +5,14 @@ import { getCurrentUser, selectIsAuthenticated } from '../store/features/authSli
 
 const AuthProvider = ({ children }) => {
   const dispatch = useDispatch();
-  const isAuthenticated = useSelector(selectIsAuthenticated)
+  const isAuthenticated = useSelector(selectIsAuthenticated);
 
   useEffect(() => {
-    if(!isAuthenticated){
-
-      dispatch(getCurrentUser());
+    if (isAuthenticated === false) {
+      dispatch(getCurrentUser())
+        .unwrap()
     }
-  }, [dispatch]);
+  }, [dispatch, isAuthenticated]);
 
   return children;
 };

@@ -67,7 +67,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
           
           <div className="flex flex-col gap-1">
             <Link
-              to="/settings"
+              to="/profile/edit"
               className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-100"
               onClick={onClose}
             >
